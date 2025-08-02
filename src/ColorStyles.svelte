@@ -1,7 +1,6 @@
 <script>
   import Selector from "./Selector.svelte";
   import Input from "./Input.svelte";
-  import Hue from "svelte-color/Hue.svelte";
   import { rgbToHsl, figmaRGBToHex } from "./color-helpers.js";
   import {
     Button,
@@ -78,8 +77,20 @@
     });
   }
 
-  const handleInput = (event) => {
-    const { h, s, l } = event.detail;
+  const handleColorChange = (event) => {
+    const hexValue = event.target.value;
+    hex = hexValue;
+    
+    // Convert hex to RGB
+    const r = parseInt(hexValue.slice(1, 3), 16);
+    const g = parseInt(hexValue.slice(3, 5), 16);
+    const b = parseInt(hexValue.slice(5, 7), 16);
+    
+    // Convert RGB to HSL
+    const hslResult = rgbToHsl(r, g, b);
+    hue = Math.round(hslResult[0] * 360).toString();
+    saturation = Math.round(hslResult[1] * 100).toString();
+    lightness = Math.round(hslResult[2] * 100).toString();
   };
 
   function getColors(styles) {
@@ -160,11 +171,16 @@
   <form on:submit={(e) => e.preventDefault()}>
     <fieldset {disabled}>
       <div class="ml-xxsmall mr-xxsmall mb-xxsmall mt-xsmall">
-        <Hue
-          class="hue-wrapper {disabled ? 'disabled' : ''}"
-          bind:h={hue}
-          on:input={handleInput}
-        />
+        <div class="color-picker-wrapper {disabled ? 'disabled' : ''}">
+          <Label>Color Picker</Label>
+          <input
+            type="color"
+            value={hex || "#000000"}
+            on:input={handleColorChange}
+            class="color-input"
+            disabled={disabled}
+          />
+        </div>
       </div>
       <div class="flex justify-content-between">
         <div class="flex-grow">
@@ -271,8 +287,36 @@
     justify-content: space-between;
   }
 
-  :global(.hue-wrapper) {
-    border-radius: 50px;
+  .color-picker-wrapper {
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--white);
+    border: 1px solid var(--silver);
+  }
+
+  .color-input {
+    width: 100%;
+    height: 40px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  .color-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+  }
+
+  .color-input::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
+  }
+
+  .color-input::-moz-color-swatch {
+    border: none;
+    border-radius: 4px;
   }
 
   :global(.disabled) {
